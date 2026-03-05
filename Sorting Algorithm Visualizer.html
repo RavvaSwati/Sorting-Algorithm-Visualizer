@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Sorting Algorithm Visualizer</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:linear-gradient(135deg,#0f172a,#1e293b);
+color:white;
+text-align:center;
+}
+
+h1{
+margin-top:20px;
+}
+
+#controls{
+margin:20px;
+padding:10px;
+background:rgba(255,255,255,0.05);
+border-radius:10px;
+}
+
+button,select,input{
+padding:8px;
+margin:5px;
+border-radius:6px;
+border:none;
+}
+
+button{
+background:#38bdf8;
+color:black;
+cursor:pointer;
+}
+
+#main{
+display:flex;
+justify-content:center;
+gap:30px;
+}
+
+#array{
+display:flex;
+align-items:flex-end;
+height:420px;
+}
+
+.bar{
+width:8px;
+margin:1px;
+background:#38bdf8;
+}
+
+#panel{
+width:260px;
+text-align:left;
+background:rgba(255,255,255,0.05);
+padding:15px;
+border-radius:10px;
+}
+
+#panel h3{
+margin-bottom:5px;
+}
+
+pre{
+background:#020617;
+padding:10px;
+border-radius:6px;
+font-size:13px;
+overflow:auto;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Sorting Algorithm Visualizer</h1>
+
+<div id="controls">
+
+<select id="algorithm">
+
+<option>Bubble</option>
+<option>Insertion</option>
+<option>Selection</option>
+
+</select>
+
+<button onclick="generateArray()">Generate Array</button>
+<button onclick="start()">Start Sorting</button>
+
+<label>Speed</label>
+<input type="range" id="speed" min="1" max="100" value="40">
+
+<label>Array Size</label>
+<input type="range" id="size" min="10" max="150" value="60">
+
+</div>
+
+<div id="main">
+
+<div id="array"></div>
+
+<div id="panel">
+
+<h3>Metrics</h3>
+<div id="metrics">
+Comparisons: 0<br>
+Swaps: 0
+</div>
+
+<h3>Algorithm Steps</h3>
+<pre id="pseudo"></pre>
+
+</div>
+
+</div>
+
+<script>
+
+let container=document.getElementById("array")
+let speedSlider=document.getElementById("speed")
+let sizeSlider=document.getElementById("size")
+
+let metrics=document.getElementById("metrics")
+let pseudo=document.getElementById("pseudo")
+
+let comparisons=0
+let swaps=0
+
+function sleep(ms){
+return new Promise(r=>setTimeout(r,ms))
+}
+
+function speed(){
+return 120-speedSlider.value
+}
+
+function resetMetrics(){
+comparisons=0
+swaps=0
+updateMetrics()
+}
+
+function updateMetrics(){
+metrics.innerHTML=
+"Comparisons: "+comparisons+
+"<br>Swaps: "+swaps
+}
+
+function generateArray(){
+
+container.innerHTML=""
+
+let size=sizeSlider.value
+
+for(let i=0;i<size;i++){
+
+let val=Math.floor(Math.random()*350)+20
+
+let bar=document.createElement("div")
+bar.className="bar"
+bar.style.height=val+"px"
+
+container.appendChild(bar)
+
+}
+
+}
+
+async function swap(bars,i,j){
+
+let h1=bars[i].style.height
+let h2=bars[j].style.height
+
+bars[i].style.height=h2
+bars[j].style.height=h1
+
+swaps++
+
+}
+
+async function bubble(){
+
+pseudo.textContent=
+`1. Repeat for all elements
+2. Compare adjacent elements
+3. If left > right → swap
+4. Largest element moves to end
+5. Continue until sorted`
+
+let bars=document.querySelectorAll(".bar")
+
+for(let i=0;i<bars.length;i++){
+
+for(let j=0;j<bars.length-i-1;j++){
+
+comparisons++
+
+bars[j].style.background="red"
+bars[j+1].style.background="red"
+
+await sleep(speed())
+
+if(parseInt(bars[j].style.height) >
+parseInt(bars[j+1].style.height))
+await swap(bars,j,j+1)
+
+bars[j].style.background="#38bdf8"
+bars[j+1].style.background="#38bdf8"
+
+updateMetrics()
+
+}
+
+}
+
+}
+
+async function insertion(){
+
+pseudo.textContent=
+`1. Start from second element
+2. Compare with previous
+3. Shift larger elements right
+4. Insert element at correct position
+5. Repeat`
+
+let bars=document.querySelectorAll(".bar")
+
+for(let i=1;i<bars.length;i++){
+
+let key=parseInt(bars[i].style.height)
+let j=i-1
+
+while(j>=0 && parseInt(bars[j].style.height)>key){
+
+comparisons++
+
+bars[j+1].style.height=bars[j].style.height
+j--
+
+await sleep(speed())
+
+updateMetrics()
+
+}
+
+bars[j+1].style.height=key+"px"
+
+}
+
+}
+
+async function selection(){
+
+pseudo.textContent=
+`1. Find smallest element
+2. Swap with first element
+3. Move boundary forward
+4. Repeat for remaining array`
+
+let bars=document.querySelectorAll(".bar")
+
+for(let i=0;i<bars.length;i++){
+
+let min=i
+
+for(let j=i+1;j<bars.length;j++){
+
+comparisons++
+
+bars[j].style.background="red"
+
+if(parseInt(bars[j].style.height) <
+parseInt(bars[min].style.height))
+min=j
+
+await sleep(speed())
+
+bars[j].style.background="#38bdf8"
+
+}
+
+await swap(bars,i,min)
+
+updateMetrics()
+
+}
+
+}
+
+async function start(){
+
+resetMetrics()
+
+let algo=document.getElementById("algorithm").value
+
+if(algo==="Bubble") bubble()
+if(algo==="Insertion") insertion()
+if(algo==="Selection") selection()
+
+}
+
+generateArray()
+
+</script>
+
+</body>
+</html>
